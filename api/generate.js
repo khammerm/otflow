@@ -54,7 +54,7 @@ export default async function handler(req, res) {
   if (!notes || typeof notes !== 'string') return res.status(400).json({ error: 'Missing session notes.' });
   const trimmed = notes.trim();
   if (trimmed.length < 20)   return res.status(400).json({ error: 'Session summary is too short.' });
-  if (trimmed.length > 4000) return res.status(400).json({ error: 'Session summary is too long (max 4000 chars).' });
+  if (trimmed.length > 8000) return res.status(400).json({ error: 'Session summary is too long (max 4000 chars).' });
 
   const safeClient = (clientId || '').replace(/[^a-zA-Z0-9 .\-]/g, '').slice(0, 20);
   const safeDate   = (sessionDate || '').replace(/[^0-9\-]/g, '').slice(0, 10);
