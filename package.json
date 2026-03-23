@@ -1,0 +1,7 @@
+{
+  "name": "otflow",
+  "version": "1.0.0",
+  "description": "AI-powered OT progress note generator",
+  "private": true,
+  "engines": { "node": ">=18" }
+}

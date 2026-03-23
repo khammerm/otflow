@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Welcome to OTFlow Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f0f4f8; --surface: #ffffff; --border: #d8e2ec;
+    --accent: #3a7abf; --accent-light: #e8f1fb; --accent-dark: #1e4d80;
+    --text: #1a2332; --text-muted: #6b7d8f;
+    --serif: 'Lora', Georgia, serif; --sans: 'DM Sans', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 48px 40px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .icon { width: 64px; height: 64px; background: var(--accent-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 28px; }
+  h1 { font-family: var(--serif); font-size: 28px; color: var(--accent-dark); margin-bottom: 10px; }
+  h1 em { font-style: italic; color: var(--accent); }
+  p { color: var(--text-muted); font-size: 15px; font-weight: 300; line-height: 1.6; margin-bottom: 8px; }
+  .email { font-weight: 500; color: var(--accent-dark); margin-bottom: 28px; }
+  .btn { display: block; width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: var(--serif); font-size: 17px; font-style: italic; cursor: pointer; text-decoration: none; transition: background 0.15s; margin-bottom: 12px; }
+  .btn:hover { background: var(--accent-dark); }
+  .status { font-size: 13px; color: var(--text-muted); margin-top: 4px; min-height: 20px; }
+  .status.error { color: #c0392b; }
+  .status.success { color: var(--accent); }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(58,122,191,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon" id="icon">⏳</div>
+  <h1 id="title">Activating your<br/><em>Pro account...</em></h1>
+  <p id="subtitle">Verifying your payment with Stripe.</p>
+  <p class="email" id="emailDisplay"></p>
+  <div class="status" id="status"><span class="spinner"></span> Verifying...</div>
+  <a class="btn" id="cta" href="/" style="display:none">Open OTFlow →</a>
+</div>
+<script>
+async function activate() {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  if (!sessionId) { showError('No session ID found. Please contact support.'); return; }
+  try {
+    const res = await fetch('/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification failed.');
+    localStorage.setItem('otf_pro_token', data.token);
+    localStorage.setItem('otf_pro_email', data.email);
+    localStorage.removeItem('otf_usage');
+    document.getElementById('icon').textContent = '✓';
+    document.getElementById('title').innerHTML = "You're all set,<br/><em>welcome to Pro.</em>";
+    document.getElementById('subtitle').textContent = 'Unlimited OT notes, every session.';
+    document.getElementById('emailDisplay').textContent = data.email;
+    document.getElementById('status').className = 'status success';
+    document.getElementById('status').textContent = 'Pro account activated.';
+    document.getElementById('cta').style.display = 'block';
+  } catch (err) {
+    showError(err.message);
+  }
+}
+function showError(msg) {
+  document.getElementById('icon').textContent = '✗';
+  document.getElementById('title').innerHTML = 'Something went<br/><em>wrong.</em>';
+  document.getElementById('status').className = 'status error';
+  document.getElementById('status').textContent = msg + ' Please email support@otflow.app';
+  document.getElementById('cta').href = '/';
+  document.getElementById('cta').textContent = 'Go back →';
+  document.getElementById('cta').style.display = 'block';
+}
+activate();
+</script>
+</body>
+</html>

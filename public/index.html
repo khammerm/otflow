@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OTFlow — OT Notes in Seconds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8eef4;
+    --border: #d0dbe6;
+    --accent: #3a7abf;
+    --accent-light: #e8f1fb;
+    --accent-dark: #1e4d80;
+    --text: #1a2332;
+    --text-muted: #6b7d8f;
+    --danger: #c0392b;
+    --serif: 'Lora', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --radius: 14px;
+    --shadow: 0 2px 20px rgba(0,0,0,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 62px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .logo { font-family: var(--serif); font-size: 22px; color: var(--accent-dark); display: flex; align-items: center; gap: 8px; }
+  .logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+  .logo em { font-style: italic; color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-badge { font-size: 11px; background: var(--accent-light); color: var(--accent-dark); padding: 4px 10px; border-radius: 20px; font-weight: 500; }
+  .btn-upgrade { font-size: 12px; font-family: var(--sans); font-weight: 500; color: white; background: var(--accent); border: none; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+  .btn-upgrade:hover { background: var(--accent-dark); }
+
+  .container { max-width: 800px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  .page-header { text-align: center; margin-bottom: 40px; }
+  .page-header h1 { font-family: var(--serif); font-size: 40px; color: var(--accent-dark); letter-spacing: -0.5px; line-height: 1.15; margin-bottom: 10px; }
+  .page-header h1 em { font-style: italic; color: var(--accent); }
+  .page-header p { color: var(--text-muted); font-weight: 300; font-size: 16px; max-width: 440px; margin: 0 auto; }
+
+  .usage-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .usage-left { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); }
+  .usage-pips { display: flex; gap: 4px; }
+  .pip { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+  .pip.used { background: var(--accent); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+  .card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-family: var(--serif); font-size: 17px; color: var(--accent-dark); display: flex; align-items: center; gap: 8px; }
+  .card-hint { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+  .card-body { padding: 24px; }
+
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); }
+  .field input, .field select { font-family: var(--sans); font-size: 14px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.15s; -webkit-appearance: none; }
+  .field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(58,122,191,0.1); }
+
+  /* Format switcher */
+  .format-switcher { display: flex; gap: 6px; margin-bottom: 18px; }
+  .fmt-btn { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text-muted); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-align: center; }
+  .fmt-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .fmt-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+  .fmt-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; font-weight: 300; }
+
+  .notes-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); display: block; margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 150px; font-family: var(--sans); font-size: 14px; line-height: 1.7; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); resize: vertical; outline: none; transition: border-color 0.15s; }
+  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(58,122,191,0.1); }
+  textarea::placeholder { color: #b0bec8; font-weight: 300; }
+
+  .btn-generate { width: 100%; margin-top: 18px; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: var(--serif); font-size: 18px; font-style: italic; cursor: pointer; transition: background 0.15s, transform 0.15s, box-shadow 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(58,122,191,0.3); }
+  .btn-generate:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
+  .btn-generate:disabled { opacity: 0.65; cursor: not-allowed; transform: none; box-shadow: none; }
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.35); border-top-color: white; border-radius: 50%; animation: spin 0.75s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box { margin-top: 14px; background: #fdf0ef; border: 1px solid #f0c4c0; color: var(--danger); padding: 12px 16px; border-radius: 8px; font-size: 13px; display: none; }
+  .error-box.show { display: block; }
+
+  .output-card { display: none; animation: fadeUp 0.4s ease; }
+  .output-card.show { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .note-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .note-block { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; overflow: hidden; }
+  .note-block::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent); opacity: 0.5; }
+  .note-block.full { grid-column: 1 / -1; }
+  .note-block-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 6px; }
+  .note-block-title { font-family: var(--serif); font-size: 13px; color: var(--accent-dark); margin-bottom: 8px; }
+  .note-block-content { font-size: 13.5px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
+
+  .output-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .btn-action { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); color: var(--text); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-action:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+  .btn-action.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-action.primary:hover { background: var(--accent-dark); }
+
+  .disclaimer { font-size: 11px; color: var(--text-muted); text-align: center; max-width: 560px; margin: 0 auto; line-height: 1.7; font-weight: 300; }
+
+  /* Modal */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 24px; }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; max-width: 400px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.15); }
+  .modal h2 { font-family: var(--serif); font-size: 22px; color: var(--accent-dark); margin-bottom: 6px; }
+  .modal h2 em { font-style: italic; color: var(--accent); }
+  .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; font-weight: 300; }
+  .modal-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .modal-field label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); }
+  .modal-field input { font-family: var(--sans); font-size: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.15s; }
+  .modal-field input:focus { border-color: var(--accent); }
+  .btn-restore { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-family: var(--serif); font-size: 16px; font-style: italic; cursor: pointer; transition: background 0.15s; margin-bottom: 10px; }
+  .btn-restore:hover:not(:disabled) { background: var(--accent-dark); }
+  .btn-restore:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-cancel { width: 100%; padding: 10px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 13px; cursor: pointer; }
+  .btn-cancel:hover { background: var(--surface2); }
+  .restore-msg { font-size: 13px; min-height: 18px; margin-bottom: 12px; }
+  .restore-msg.error { color: var(--danger); }
+  .restore-msg.success { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    .container { padding: 28px 16px 60px; }
+    .page-header h1 { font-size: 30px; }
+    .meta-grid { grid-template-columns: 1fr 1fr; }
+    .note-grid { grid-template-columns: 1fr; }
+    .note-block.full { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><div class="logo-dot"></div>OT<em>Flow</em></div>
+  <div class="nav-right">
+    <div class="nav-badge" id="navBadge">Free Trial</div>
+    <button class="btn-upgrade" onclick="goToStripe()">Upgrade to Pro</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <h1>Your OT notes,<br/><em>written in seconds.</em></h1>
+    <p>Describe the session — get a complete, professional clinical note ready to file.</p>
+  </div>
+
+  <div class="usage-bar">
+    <div class="usage-left">
+      <div class="usage-pips" id="pips"></div>
+      <span>Free trial: <strong id="usageText">0 of 5</strong> notes used</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn-upgrade" onclick="goToStripe()">Unlock Unlimited →</button>
+      <button onclick="openRestore()" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--sans);text-decoration:underline;white-space:nowrap;">Already subscribed?</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 Session Details</div>
+      <div class="card-hint">All fields optional except summary</div>
+    </div>
+    <div class="card-body">
+
+      <div class="meta-grid">
+        <div class="field">
+          <label class="field-label">Client Initials</label>
+          <input type="text" id="clientId" placeholder="e.g. A.B." maxlength="10"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Session Date</label>
+          <input type="date" id="sessionDate"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Session Type</label>
+          <select id="sessionType">
+            <option>Individual OT session</option>
+            <option>Group OT session</option>
+            <option>Initial evaluation</option>
+            <option>Re-evaluation</option>
+            <option>Home visit</option>
+            <option>Telehealth session</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="field-label" style="display:block;margin-bottom:8px;">Note Format</label>
+      <div class="format-switcher">
+        <button class="fmt-btn active" data-fmt="DAP" onclick="setFormat('DAP', this)">DAP</button>
+        <button class="fmt-btn" data-fmt="SOAP" onclick="setFormat('SOAP', this)">SOAP</button>
+        <button class="fmt-btn" data-fmt="SIRP" onclick="setFormat('SIRP', this)">SIRP</button>
+      </div>
+      <p class="fmt-desc" id="fmtDesc">Data · Assessment · Plan — most common OT format</p>
+
+      <label class="notes-label">Session Summary *</label>
+      <textarea id="sessionNotes" placeholder="Describe the session in your own words — what you worked on, how the client presented, their performance on tasks, any functional gains or barriers, interventions used, client's response, and any plans for next session.
+
+Example: Client presented with decreased upper extremity coordination affecting ADL performance. Worked on fine motor tasks including buttoning, zipping, and utensil use. Client demonstrated improved pinch strength from last session. Reported frustration with slow progress but remained engaged throughout. Practiced energy conservation techniques for morning routine. Caregiver present and educated on home program modifications."></textarea>
+
+      <button class="btn-generate" id="generateBtn" onclick="generateNote()">
+        <span id="btnText">Generate Note</span>
+      </button>
+
+      <div class="error-box" id="errorBox"></div>
+    </div>
+  </div>
+
+  <div class="card output-card" id="outputCard">
+    <div class="card-header">
+      <div class="card-title">✨ Generated Note</div>
+      <div class="card-hint" id="outputMeta"></div>
+    </div>
+    <div class="card-body">
+      <div class="note-grid" id="noteGrid"></div>
+      <div class="output-actions">
+        <button class="btn-action primary" id="copyBtn" onclick="copyNote()">📋 Copy Full Note</button>
+        <button class="btn-action" onclick="newNote()">↩ New Note</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="disclaimer">
+    OTFlow does not store session data or patient information. Notes are generated in real time and immediately discarded.
+    Always review generated notes before filing — this tool assists documentation, it does not replace clinical judgment.
+  </p>
+
+</div>
+
+<!-- RESTORE MODAL -->
+<div class="modal-backdrop" id="restoreModal">
+  <div class="modal">
+    <h2>Restore your<br/><em>Pro access.</em></h2>
+    <p>Enter the email you used when you subscribed and we'll restore your access instantly.</p>
+    <div class="modal-field">
+      <label>Email address</label>
+      <input type="email" id="restoreEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter') restoreAccess()"/>
+    </div>
+    <div class="restore-msg" id="restoreMsg"></div>
+    <button class="btn-restore" id="restoreBtn" onclick="restoreAccess()">Restore access</button>
+    <button class="btn-cancel" onclick="closeRestore()">Cancel</button>
+  </div>
+</div>
+
+<script>
+  const FREE_LIMIT = 5;
+  const STRIPE_LINK = 'https://buy.stripe.com/REPLACE_WITH_YOUR_OT_STRIPE_LINK';
+
+  let usage = parseInt(localStorage.getItem('otf_usage') || '0');
+  let proToken = localStorage.getItem('otf_pro_token') || null;
+  const isPro = !!proToken;
+
+  let currentFormat = 'DAP';
+  const FORMAT_DESCS = {
+    DAP:  'Data · Assessment · Plan — most common OT format',
+    SOAP: 'Subjective · Objective · Assessment · Plan',
+    SIRP: 'Situation · Intervention · Response · Plan'
+  };
+  const FORMAT_SECTIONS = {
+    DAP:  [['D','Data'],['A','Assessment'],['P','Plan']],
+    SOAP: [['S','Subjective'],['O','Objective'],['A','Assessment'],['P','Plan']],
+    SIRP: [['S','Situation'],['I','Intervention'],['R','Response'],['P','Plan']]
+  };
+
+  function init() {
+    document.getElementById('sessionDate').valueAsDate = new Date();
+    if (isPro) {
+      const email = localStorage.getItem('otf_pro_email') || '';
+      document.querySelector('.usage-bar').innerHTML =
+        `<div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+           <span style="color:var(--accent);font-size:16px;">✓</span>
+           <strong style="color:var(--accent-dark);">Pro</strong>
+           <span style="color:var(--text-muted)">${email ? '· ' + email : ''} · Unlimited notes</span>
+         </div>
+         <button class="btn-upgrade" onclick="logout()">Sign out</button>`;
+      document.getElementById('navBadge').textContent = 'Pro';
+    } else {
+      renderPips();
+    }
+  }
+
+  function setFormat(fmt, btn) {
+    currentFormat = fmt;
+    document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('fmtDesc').textContent = FORMAT_DESCS[fmt];
+  }
+
+  function renderPips() {
+    const c = document.getElementById('pips');
+    if (!c) return;
+    c.innerHTML = '';
+    for (let i = 0; i < FREE_LIMIT; i++) {
+      const p = document.createElement('div');
+      p.className = 'pip' + (i < usage ? ' used' : '');
+      c.appendChild(p);
+    }
+    document.getElementById('usageText').textContent = `${usage} of ${FREE_LIMIT}`;
+  }
+
+  function goToStripe() { window.location.href = STRIPE_LINK; }
+  function logout() { localStorage.removeItem('otf_pro_token'); localStorage.removeItem('otf_pro_email'); location.reload(); }
+
+  async function generateNote() {
+    const notes = document.getElementById('sessionNotes').value.trim();
+    if (!notes || notes.length < 20) { showError('Please enter a session summary.'); return; }
+    if (!isPro && usage >= FREE_LIMIT) { showError('You\'ve used all 5 free notes.'); goToStripe(); return; }
+
+    setLoading(true);
+    hideError();
+    document.getElementById('outputCard').classList.remove('show');
+
+    const payload = {
+      notes,
+      clientId: document.getElementById('clientId').value.trim(),
+      sessionDate: document.getElementById('sessionDate').value,
+      sessionType: document.getElementById('sessionType').value,
+      noteFormat: currentFormat,
+    };
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (proToken) headers['Authorization'] = `Bearer ${proToken}`;
+
+    try {
+      const res = await fetch('/api/generate', { method: 'POST', headers, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+      renderOutput(data.note, data.format, payload);
+      if (!isPro) { usage++; localStorage.setItem('otf_usage', usage); renderPips(); }
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function renderOutput(note, format, meta) {
+    const sections = FORMAT_SECTIONS[format] || FORMAT_SECTIONS.DAP;
+    const grid = document.getElementById('noteGrid');
+    grid.innerHTML = '';
+    sections.forEach(([key, title]) => {
+      const block = document.createElement('div');
+      block.className = 'note-block' + (sections.length === 3 ? ' full' : '');
+      block.innerHTML = `<div class="note-block-label">${key}</div><div class="note-block-title">${title}</div><div class="note-block-content">${note[key] || ''}</div>`;
+      grid.appendChild(block);
+    });
+    const client = meta.clientId || 'Client';
+    const date = meta.sessionDate || '';
+    document.getElementById('outputMeta').textContent = [client, date, format].filter(Boolean).join(' · ');
+    const card = document.getElementById('outputCard');
+    card.classList.add('show');
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function copyNote() {
+    const client = document.getElementById('clientId').value || 'Client';
+    const date = document.getElementById('sessionDate').value;
+    const type = document.getElementById('sessionType').value;
+    const sections = FORMAT_SECTIONS[currentFormat];
+    let text = `OT NOTE — ${currentFormat} — ${type}\nClient: ${client}   Date: ${date}\n\n`;
+    sections.forEach(([key, title]) => {
+      const content = document.querySelector(`.note-block:nth-child(${sections.indexOf([key,title])+1}) .note-block-content`)?.textContent || '';
+      text += `${key} — ${title.toUpperCase()}\n${content}\n\n`;
+    });
+    text += '——\nGenerated with OTFlow. Review before filing.';
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy Full Note', 2500);
+    });
+  }
+
+  function newNote() {
+    document.getElementById('sessionNotes').value = '';
+    document.getElementById('clientId').value = '';
+    document.getElementById('outputCard').classList.remove('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = on;
+    btn.innerHTML = on ? '<div class="spinner"></div><span>Writing your note...</span>' : '<span id="btnText">Generate Note</span>';
+  }
+
+  function showError(msg) { const el = document.getElementById('errorBox'); el.textContent = '⚠ ' + msg; el.classList.add('show'); }
+  function hideError() { document.getElementById('errorBox').classList.remove('show'); }
+
+  function openRestore() { document.getElementById('restoreModal').classList.add('show'); setTimeout(() => document.getElementById('restoreEmail').focus(), 100); }
+  function closeRestore() { document.getElementById('restoreModal').classList.remove('show'); document.getElementById('restoreEmail').value = ''; document.getElementById('restoreMsg').textContent = ''; }
+
+  async function restoreAccess() {
+    const email = document.getElementById('restoreEmail').value.trim();
+    if (!email) { showRestoreMsg('Please enter your email.', 'error'); return; }
+    const btn = document.getElementById('restoreBtn');
+    btn.disabled = true; btn.textContent = 'Checking...';
+    try {
+      const res = await fetch('/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+      localStorage.setItem('otf_pro_token', data.token);
+      localStorage.setItem('otf_pro_email', data.email);
+      localStorage.removeItem('otf_usage');
+      showRestoreMsg('Pro access restored! Reloading...', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } catch (err) {
+      showRestoreMsg(err.message, 'error');
+      btn.disabled = false; btn.textContent = 'Restore access';
+    }
+  }
+
+  function showRestoreMsg(msg, type) { const el = document.getElementById('restoreMsg'); el.textContent = msg; el.className = 'restore-msg' + (type ? ' ' + type : ''); }
+
+  init();
+</script>
+</body>
+</html>
